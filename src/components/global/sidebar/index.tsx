@@ -1,6 +1,6 @@
 "use client";
 
-import { getWorkSpaces } from "@/actions/workspace";
+import { getNotifications, getWorkSpaces } from "@/actions/workspace";
 import {
   Select,
   SelectContent,
@@ -12,13 +12,16 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { useQueryData } from "@/hooks/useQueryData";
-import { WorkspaceProps } from "@/types/index.types";
+import { NotificationProps, WorkspaceProps } from "@/types/index.types";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import React from "react";
 import Modal from "../modal";
 import { PlusCircle } from "lucide-react";
 import Search from "../search";
+import { MenuItems } from "@/constants";
+import SidebarItem from "./sidebar-item";
+import WorkspacePlaceholder from "./workspace-placeholder";
 
 type Props = {
   activeWorkspaceId: string;
@@ -26,8 +29,14 @@ type Props = {
 
 const Sidebar = ({ activeWorkspaceId }: Props) => {
   const router = useRouter();
+  const pathName = usePathname()
 
+  const {data: notifications} = useQueryData(["user-notifications"], getNotifications)
+
+  const {data: count} = notifications as NotificationProps
+  
   const { data, isFetched } = useQueryData(["user-workspaces"], getWorkSpaces);
+  const menuItems = MenuItems(activeWorkspaceId)
 
   const { data: workspace } = data as WorkspaceProps;
   const onChangeActiveWorkspace = (value: string) => {
@@ -74,7 +83,7 @@ const Sidebar = ({ activeWorkspaceId }: Props) => {
         </SelectContent>
       </Select>
       
-      { currentWorkspace?.type === "PUBLIC" && <Modal
+      { currentWorkspace?.type === "PUBLIC" && workspace.subscription?.plan == "PRO" && (<Modal
         trigger={
           <span className="text-sm cursor-pointer flex items-center justify-center bg-neutral-800/90 hover:bg-neutral-800/60 w-full rounded-sm p-[5px] gap-2">
             <PlusCircle
@@ -88,7 +97,28 @@ const Sidebar = ({ activeWorkspaceId }: Props) => {
         description="Invite other user to your workspace"
     >
         <Search workspaceId={activeWorkspaceId} />
-      </Modal>}
+      </Modal>)}
+      <p className="w-full text-[#9d9d9d] font-bold mt-4">Menu</p>
+      <nav className="w-full ">
+          <ul>
+            {menuItems.map((item) => (
+                <SidebarItem href={item.href} icon={item.icon} selected={pathName === item.href} title={item.title} key={item.title} notifications={
+                  (item.title === 'Notifications' && count._count && count._count.notification) || 0
+                }>
+
+                </SidebarItem>  
+            ))}
+          </ul>
+      </nav>
+      <Separator className="w-4/5"/>
+      <p className="w-full text-[#9d9d9d] font-bold mt-4">Workspaces</p>
+      <nav className="w-full">
+          <ul className="h-[150px] overflow-auto overflow-x-hidden fade-layer">
+              {workspace.workspace.length > 1 && workspace.workspace.map((item) => (
+                <SidebarItem href={`/dashboard/${item.id}`} selected={pathName === `/dashboard/${item.id}`} title={item.name} notifications={0} key={item.name} icon={<WorkspacePlaceholder/>}/>
+              ))}
+          </ul>
+      </nav>
     </div>
   );
 };
