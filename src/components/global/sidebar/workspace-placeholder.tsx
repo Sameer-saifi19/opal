@@ -1,13 +1,15 @@
-import React from 'react'
+import React from "react";
 
 type Props = {
-    
-}
+  children: React.ReactNode;
+};
 
-const WorkspacePlaceholder = (props: Props) => {
+const WorkspacePlaceholder = ({ children }: Props) => {
   return (
-    <div>WorkspacePlaceholder</div>
+    <span className="bg-[#545454] flex items-center font-bold justify-center w-8 px-2 h-7 rounded-sm text-[#1d1d1d]">
+      {children}
+    </span>
   )
-}
+};
 
-export default WorkspacePlaceholder
+export default WorkspacePlaceholder;
