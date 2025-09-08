@@ -26,6 +26,7 @@ import GlobalCard from "../global-card";
 import { Button } from "@/components/ui/button";
 import Loader from "../loader";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import Infobar from "../infobar";
 
 type Props = {
   activeWorkspaceId: string;
@@ -188,13 +189,13 @@ const Sidebar = ({ activeWorkspaceId }: Props) => {
       </nav>
       <Separator className="w-4/5"/>
       {workspace.subscription?.plan === 'FREE' && <GlobalCard title="Upgrade to pro" description="Unlock AI features like transcription, AI summary and More." >
-          <Button className="text-sm w-full mt-2"><Loader>Upgrade</Loader></Button>
+          <Button className="text-sm w-full mt-2"><Loader state={false}>Upgrade</Loader></Button>
         </GlobalCard>}
     </div>
   );
 
   return <div className="full">
-      {/* {infobar} */}
+      <Infobar/>
       {/* {sheet}  */}
       <div className="md:hidden fixed my-4">
         <Sheet>
