@@ -123,75 +123,113 @@ export const getWorkSpaces = async () => {
         status: 404,
       };
 
-      const workspaces = await client.user.findUnique({
-        where:{
-            clerkid: user.id
+    const workspaces = await client.user.findUnique({
+      where: {
+        clerkid: user.id,
+      },
+      select: {
+        subscription: {
+          select: {
+            plan: true,
+          },
         },
-        select:{
-            subscription: {
-                select: {
-                    plan : true
-                }
+        workspace: {
+          select: {
+            id: true,
+            name: true,
+            type: true,
+          },
+        },
+        members: {
+          select: {
+            WorkSpace: {
+              select: {
+                id: true,
+              },
             },
-            workspace:{
-                select: {
-                    id: true,
-                    name: true,
-                    type: true
-                }
-            },
-            members: {
-                select:{
-                    WorkSpace:{
-                        select:{
-                            id: true
-                        }
-                    }
-                }
-            }
-        }
-      })
+          },
+        },
+      },
+    });
 
-      if(workspaces) {
-        return { status: 200, data: workspaces}
-      }
+    if (workspaces) {
+      return { status: 200, data: workspaces };
+    }
 
-      return { status: 404, data: []}
+    return { status: 404, data: [] };
   } catch (error) {
-        return {status: 400}
+    return { status: 400 };
   }
 };
 
-
-
 export const getNotifications = async () => {
-    try {
-        const user = await currentUser();
+  try {
+    const user = await currentUser();
 
-        if(!user) return { status: 404 }
+    if (!user) return { status: 404 };
 
+    const notifications = await client.user.findUnique({
+      where: {
+        clerkid: user.id,
+      },
+      select: {
+        notification: true,
+        _count: {
+          select: {
+            notification: true,
+          },
+        },
+      },
+    });
 
-        const notifications = await client.user.findUnique({
-            where:{
-                clerkid: user.id
-            },
-            select:{
-                notification: true,
-                _count: {
-                    select:{
-                        notification: true
-                    }
-                }
-            }
-        })
-
-
-        if(notifications && notifications.notification.length > 0) {
-        return { status: 200, data: notifications}
-      }
-
-      return { status: 404, data: []}
-    } catch (error) {
-       return { status: 400, data: []}
+    if (notifications && notifications.notification.length > 0) {
+      return { status: 200, data: notifications };
     }
-}
+
+    return { status: 404, data: [] };
+  } catch (error) {
+    return { status: 400, data: [] };
+  }
+};
+
+export const CreateWorkspace = async (name: string) => {
+  try {
+    const user = await currentUser();
+    if (!user) return { status: 404 };
+
+    const authorized = await client.user.findUnique({
+      where: {
+        clerkid: user.id,
+      },
+      select: {
+        subscription: {
+          select: {
+            plan: true,
+          },
+        },
+      },
+    });
+
+    if (authorized?.subscription?.plan === "PRO") {
+      const workspace = await client.user.update({
+        where: {
+          clerkid: user.id,
+        },
+        data: {
+          workspace: {
+            create: {
+              name,
+              type: "PUBLIC",
+            },
+          },
+        },
+      });
+
+      if (workspace) return { status: 201, data: "Workspace created" };
+    }
+
+    return { status: 401, data: "You are not authorized to create workspace" };
+  } catch (error) {
+    return { status: 400 };
+  }
+};

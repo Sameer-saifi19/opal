@@ -1,14 +1,17 @@
 import {
-  MutateFunction,
+  MutationFunction,
   MutationKey,
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-export const useMutationData = (
+export const useMutationData = <
+  TData extends { status: number; data?: string },
+  TVariables
+>(
   mutationKey: MutationKey,
-  mutationFn: MutateFunction<any, any>,
+  mutationFn: MutationFunction<TData, TVariables>,
   queryKey?: string,
   onSuccess?: () => void
 ) => {
